@@ -12,6 +12,18 @@ namespace Core.Models
         public int Ocena { get; set; }
         public string Komentar { get; set; } = string.Empty;
 
+        public Kupovina()
+        {
 
+        }
+
+        public Kupovina(Posetilac posetilac, Knjiga knjiga, DateTime datumKupovine, int ocena, string komentar)
+        {
+            Posetilac = posetilac;
+            Knjiga = knjiga;
+            DatumKupovine = datumKupovine;
+            Ocena = ocena;
+            Komentar = komentar;
+        }
     }
 }
