@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Core.Interfaces;
 
-namespace Core.Models
+namespace Core.Models 
 {
-    public class Kupovina
+    public class Kupovina : ISerializable
     {
         public Posetilac Posetilac { get; set; }
         public Knjiga Knjiga { get; set; }
@@ -24,6 +25,42 @@ namespace Core.Models
             DatumKupovine = datumKupovine;
             Ocena = ocena;
             Komentar = komentar;
+        }
+
+        public string[] ToCSV()
+        {
+            string[] niz_polja =
+            {
+                Posetilac.BrojClanskeKarte,
+                Knjiga.ISBN,
+                DatumKupovine.ToString("dd.MM.yyyy"),
+                Ocena.ToString(),
+                Komentar
+            };
+
+            return niz_polja;
+        }
+
+        public void FromCSV(string[] values)
+        {
+            Posetilac = new Posetilac
+            {
+                BrojClanskeKarte = values[0]
+            };
+
+            Knjiga = new Knjiga
+            {
+                ISBN = values[1]
+            };
+
+            DatumKupovine = DateTime.ParseExact(
+                values[2],
+                "dd.MM.yyyy",
+                System.Globalization.CultureInfo.InvariantCulture
+            );
+
+            Ocena = int.Parse(values[3]);
+            Komentar = values[4];
         }
     }
 }

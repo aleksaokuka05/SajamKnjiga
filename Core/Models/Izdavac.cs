@@ -17,7 +17,7 @@ namespace Core.Models
 
         public Izdavac()
         {
-
+            SefIzdavaca = new Autor();
         }
 
         public Izdavac(string sifra, string naziv, Autor sefIzdavaca)
