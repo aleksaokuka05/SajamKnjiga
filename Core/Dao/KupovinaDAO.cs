@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Core.Interfaces;
 using Core.Models;
 using Core.Utils;
 
 namespace Core.DAO
 {
-    public class KupovinaDAO
+    public class KupovinaDAO : IKupovinaDAO
     {
         // Putanja do CSV fajla
         private readonly string _filePath = "Data" + Path.DirectorySeparatorChar + "kupovine.csv";

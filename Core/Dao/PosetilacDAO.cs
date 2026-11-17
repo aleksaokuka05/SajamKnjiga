@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Core.Interfaces;
 using Core.Models;
 using Core.Utils;
 
 namespace Core.DAO
 {
-    public class PosetilacDAO
+    public class PosetilacDAO : IPosetilacDAO
     {
         private readonly string _filePath = "Data" + Path.DirectorySeparatorChar + "posetioci.csv";
         private readonly Serializer<Posetilac> _serializer = new Serializer<Posetilac>();
