@@ -1,27 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Core.Interfaces;
+using System;
 using System.Text;
-using Core.Interfaces;
 
 namespace Core.Models 
 {
     public class Kupovina : ISerializable
     {
-        public Posetilac Posetilac { get; set; }
-        public Knjiga Knjiga { get; set; }
+        public int Id { get; set; }
+
+        public int PosetilacId { get; set; }
+        public Posetilac? Posetilac { get; set; }
+
+        public int KnjigaId { get; set; }
+        public Knjiga? Knjiga { get; set; }
+
         public DateTime DatumKupovine { get; set; }
+
         public int Ocena { get; set; }
-        public string Komentar { get; set; } = string.Empty;
+
+        public string Komentar { get; set; }
 
         public Kupovina()
         {
-
+            Komentar = string.Empty;
         }
 
         public Kupovina(Posetilac posetilac, Knjiga knjiga, DateTime datumKupovine, int ocena, string komentar)
         {
             Posetilac = posetilac;
+            PosetilacId = posetilac.Id;
             Knjiga = knjiga;
+            KnjigaId = knjiga.Id;
             DatumKupovine = datumKupovine;
             Ocena = ocena;
             Komentar = komentar;
@@ -31,8 +40,9 @@ namespace Core.Models
         {
             string[] niz_polja =
             {
-                Posetilac.BrojClanskeKarte,
-                Knjiga.ISBN,
+                Id.ToString(),
+                PosetilacId.ToString(),
+                KnjigaId.ToString(),
                 DatumKupovine.ToString("dd.MM.yyyy"),
                 Ocena.ToString(),
                 Komentar
@@ -43,24 +53,28 @@ namespace Core.Models
 
         public void FromCSV(string[] values)
         {
-            Posetilac = new Posetilac
-            {
-                BrojClanskeKarte = values[0]
-            };
-
-            Knjiga = new Knjiga
-            {
-                ISBN = values[1]
-            };
-
+            Id = int.Parse(values[0]);
+            PosetilacId = int.Parse(values[1]);
+            KnjigaId = int.Parse(values[2]);
             DatumKupovine = DateTime.ParseExact(
-                values[2],
+                values[3],
                 "dd.MM.yyyy",
-                System.Globalization.CultureInfo.InvariantCulture
-            );
+                System.Globalization.CultureInfo.InvariantCulture);
+            Ocena = int.Parse(values[4]);
+            Komentar = values[5];
+        }
 
-            Ocena = int.Parse(values[3]);
-            Komentar = values[4];
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("POSETILAC: " + Posetilac?.Ime + " " + Posetilac?.Prezime + ", ");
+            sb.Append("KNJIGA: " + Knjiga?.Naziv + ", ");
+            sb.Append("DATUM KUPOVINE: " + DatumKupovine.ToString("dd.MM.yyyy") + ", ");
+            sb.Append("OCENA: " + Ocena + ", ");
+            sb.Append("KOMENTAR: " + Komentar);
+
+            return sb.ToString();
         }
     }
 }

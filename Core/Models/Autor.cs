@@ -1,5 +1,7 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Core.Interfaces;
 
@@ -7,36 +9,37 @@ namespace Core.Models
 {
     public class Autor : ISerializable
     {
-        public string Ime { get; set; } 
-
-        public string Prezime { get; set; } 
-
+        public int Id { get; set; }
+        public string Ime { get; set; }
+        public string Prezime { get; set; }
         public DateTime DatumRodjenja { get; set; }
-
-        public Adresa Adresa { get; set; } 
-
-        public string Telefon { get; set; } 
-
+        public int AdresaId { get; set; }
+        public Adresa? Adresa { get; set; }
+        public string Telefon { get; set; }
         public string Imejl { get; set; }
-
-        public string BrojLicneKarte { get; set; } 
-
+        public string BrojLicneKarte { get; set; }
         public int GodineIskustva { get; set; }
-
-        public List<Knjiga> Knjige { get; set; } 
+        public List<Knjiga> Knjige { get; set; }
 
         public Autor()
         {
-            Adresa = new Adresa();
+            Ime = string.Empty;
+            Prezime = string.Empty;
+            Telefon = string.Empty;
+            Imejl = string.Empty;
+            BrojLicneKarte = string.Empty;
             Knjige = new List<Knjiga>();
         }
 
-        public Autor(string ime, string prezime, DateTime datumRodjenja, Adresa adresa, string telefon, string imejl, string brojLicneKarte, int godineIskustva)
+        public Autor(string ime, string prezime, DateTime datumRodjenja,
+            Adresa adresa, string telefon, string imejl,
+            string brojLicneKarte, int godineIskustva)
         {
             Ime = ime;
             Prezime = prezime;
             DatumRodjenja = datumRodjenja;
             Adresa = adresa;
+            AdresaId = adresa.Id;
             Telefon = telefon;
             Imejl = imejl;
             BrojLicneKarte = brojLicneKarte;
@@ -48,13 +51,11 @@ namespace Core.Models
         {
             string[] niz_polja =
             {
+                Id.ToString(),
                 Ime,
                 Prezime,
                 DatumRodjenja.ToString("dd.MM.yyyy"),
-                Adresa.Ulica,
-                Adresa.Broj,
-                Adresa.Grad,
-                Adresa.Drzava,
+                AdresaId.ToString(),
                 Telefon,
                 Imejl,
                 BrojLicneKarte,
@@ -66,26 +67,16 @@ namespace Core.Models
 
         public void FromCSV(string[] values)
         {
-            Ime = values[0];
-            Prezime = values[1];
-            DatumRodjenja = DateTime.ParseExact(
-                values[2],
-                "dd.MM.yyyy",
-                System.Globalization.CultureInfo.InvariantCulture
-            );
-
-            Adresa = new Adresa(
-                values[3],
-                values[4],
-                values[5],
-                values[6]
-            );
-
-            Telefon = values[7];
-            Imejl = values[8];
-            BrojLicneKarte = values[9];
-            GodineIskustva = int.Parse(values[10]);
-
+            Id = int.Parse(values[0]);
+            Ime = values[1];
+            Prezime = values[2];
+            DatumRodjenja = DateTime.ParseExact(values[3], "dd.MM.yyyy",
+                System.Globalization.CultureInfo.InvariantCulture);
+            AdresaId = int.Parse(values[4]);
+            Telefon = values[5];
+            Imejl = values[6];
+            BrojLicneKarte = values[7];
+            GodineIskustva = int.Parse(values[8]);
             Knjige = new List<Knjiga>();
         }
 
@@ -102,12 +93,9 @@ namespace Core.Models
             sb.Append("BROJ LICNE KARTE: " + BrojLicneKarte + ", ");
             sb.Append("GODINE ISKUSTVA: " + GodineIskustva + ", ");
             sb.Append("KNJIGE: ");
-
             sb.AppendJoin(", ", Knjige.Select(knjiga => knjiga.Naziv));
 
             return sb.ToString();
         }
-
-
     }
 }
