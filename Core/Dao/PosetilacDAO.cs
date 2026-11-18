@@ -1,76 +1,81 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using Core.Interfaces;
+
 using Core.Models;
 using Core.Utils;
 
 namespace Core.DAO
 {
-    public class PosetilacDAO : IPosetilacDAO
+    public class PosetilacDAO
     {
-        private readonly string _filePath = "Data" + Path.DirectorySeparatorChar + "posetioci.csv";
-        private readonly Serializer<Posetilac> _serializer = new Serializer<Posetilac>();
+        private readonly List<Posetilac> _posetioci;
+        private readonly Storage<Posetilac> _storage;
 
-        // Metoda GetAll ucitava posetioce iz CSV fajla
-        public List<Posetilac> GetAll()
+        public PosetilacDAO()
         {
-            if (!File.Exists(_filePath))
+            _storage = new Storage<Posetilac>("posetioci.csv");
+            _posetioci = _storage.Load();
+        }
+
+        public Posetilac AddPosetilac(Posetilac posetilac)
+        {
+            _posetioci.Add(posetilac);
+            _storage.Save(_posetioci);
+            return posetilac;
+        }
+
+        public Posetilac? UpdatePosetilac(Posetilac posetilac)
+        {
+            Posetilac? stariPosetilac =
+                GetPosetilacByBrojClanskeKarte(posetilac.BrojClanskeKarte);
+
+            if (stariPosetilac is null)
+                return null;
+
+            stariPosetilac.Ime = posetilac.Ime;
+            stariPosetilac.Prezime = posetilac.Prezime;
+            stariPosetilac.DatumRodjenja = posetilac.DatumRodjenja;
+            stariPosetilac.Adresa = posetilac.Adresa;
+            stariPosetilac.KontaktTelefon = posetilac.KontaktTelefon;
+            stariPosetilac.Email = posetilac.Email;
+            stariPosetilac.TrenutnaGodinaClanstva = posetilac.TrenutnaGodinaClanstva;
+            stariPosetilac.Status = posetilac.Status;
+            stariPosetilac.ProsecnaOcena = posetilac.ProsecnaOcena;
+            stariPosetilac.Kupovine = posetilac.Kupovine;
+            stariPosetilac.ListaZelja = posetilac.ListaZelja;
+
+            _storage.Save(_posetioci);
+            return stariPosetilac;
+        }
+
+        public Posetilac? GetPosetilacByBrojClanskeKarte(string brojClanskeKarte)
+        {
+            foreach (Posetilac posetilac in _posetioci)
             {
-                return new List<Posetilac>();
+                if (posetilac.BrojClanskeKarte == brojClanskeKarte)
+                    return posetilac;
             }
 
-            string[] lines = File.ReadAllLines(_filePath);
-
-            return _serializer.FromCSV(lines);
+            return null;
         }
 
-        // Metoda Save cuva posetioce u CSV fajl
-        public void Save(List<Posetilac> posetioci)
+        public Posetilac? RemovePosetilac(string brojClanskeKarte)
         {
-            string content = _serializer.ToCSV(posetioci);
+            Posetilac? posetilac =
+                GetPosetilacByBrojClanskeKarte(brojClanskeKarte);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            if (posetilac is null)
+                return null;
 
-            File.WriteAllText(_filePath, content);
+            _posetioci.Remove(posetilac);
+            _storage.Save(_posetioci);
+
+            return posetilac;
         }
 
-        // Dodavanje posetioca
-        public void Add(Posetilac posetilac)
+        public List<Posetilac> GetAllPosetioci()
         {
-            List<Posetilac> posetioci = GetAll();
-
-            posetioci.Add(posetilac);
-
-            Save(posetioci);
-        }
-
-        // Izmene podataka za posetioce
-        public void Update(Posetilac posetilac)
-        {
-            List<Posetilac> posetioci = GetAll();
-
-            int index = posetioci.FindIndex(p => p.BrojClanskeKarte == posetilac.BrojClanskeKarte);
-
-            if (index != -1)
-            {
-                posetioci[index] = posetilac;
-                Save(posetioci);
-            }
-        }
-
-        // Brisanje posetioca iz podataka
-        public void Delete(string brojClanskeKarte)
-        {
-            List<Posetilac> posetioci = GetAll();
-
-            Posetilac posetilac = posetioci.Find(p => p.BrojClanskeKarte == brojClanskeKarte);
-
-            if (posetilac != null)
-            {
-                posetioci.Remove(posetilac);
-                Save(posetioci);
-            }
+            return _posetioci;
         }
     }
 }

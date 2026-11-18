@@ -1,80 +1,74 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
-using System.IO;
-using Core.Interfaces;
+
+
 using Core.Models;
 using Core.Utils;
 
 namespace Core.DAO
 {
-    public class IzdavacDAO : IIzdavacDAO
+    public class IzdavacDAO
     {
-        // Putanja
-        private readonly string _filePath = "Data" + Path.DirectorySeparatorChar + "izdavaci.csv";
+        private readonly List<Izdavac> _izdavaci;
+        private readonly Storage<Izdavac> _storage;
 
-        private readonly Serializer<Izdavac> _serializer = new Serializer<Izdavac>();
-
-        // Ucitavanje izdavaca
-        public List<Izdavac> GetAll()
+        public IzdavacDAO()
         {
-            if (!File.Exists(_filePath))
+            _storage = new Storage<Izdavac>("izdavaci.csv");
+            _izdavaci = _storage.Load();
+        }
+
+        public Izdavac AddIzdavac(Izdavac izdavac)
+        {
+            _izdavaci.Add(izdavac);
+            _storage.Save(_izdavaci);
+            return izdavac;
+        }
+
+        public Izdavac? UpdateIzdavac(Izdavac izdavac)
+        {
+            Izdavac? stariIzdavac = GetIzdavacBySifra(izdavac.Sifra);
+
+            if (stariIzdavac is null)
+                return null;
+
+            stariIzdavac.Naziv = izdavac.Naziv;
+            stariIzdavac.SefIzdavaca = izdavac.SefIzdavaca;
+            stariIzdavac.Autori = izdavac.Autori;
+            stariIzdavac.Knjige = izdavac.Knjige;
+
+            _storage.Save(_izdavaci);
+            return stariIzdavac;
+        }
+
+        public Izdavac? GetIzdavacBySifra(string sifra)
+        {
+            foreach (Izdavac izdavac in _izdavaci)
             {
-                return new List<Izdavac>();
+                if (izdavac.Sifra == sifra)
+                    return izdavac;
             }
 
-            string[] lines = File.ReadAllLines(_filePath);
-
-            return _serializer.FromCSV(lines);
+            return null;
         }
 
-        // Cuvanje izdavaca
-        public void Save(List<Izdavac> izdavaci)
+        public Izdavac? RemoveIzdavac(string sifra)
         {
-            string content = _serializer.ToCSV(izdavaci);
+            Izdavac? izdavac = GetIzdavacBySifra(sifra);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            if (izdavac is null)
+                return null;
 
-            File.WriteAllText(_filePath, content);
+            _izdavaci.Remove(izdavac);
+            _storage.Save(_izdavaci);
+
+            return izdavac;
         }
 
-        // Dodavanje novog izdavaca
-        public void Add(Izdavac izdavac)
+        public List<Izdavac> GetAllIzdavaci()
         {
-            List<Izdavac> izdavaci = GetAll();
-
-            izdavaci.Add(izdavac);
-
-            Save(izdavaci);
-        }
-
-        // Izmena
-        public void Update(Izdavac izdavac)
-        {
-            List<Izdavac> izdavaci = GetAll();
-
-            int index = izdavaci.FindIndex(i =>
-                i.Sifra == izdavac.Sifra);
-
-            if (index != -1)
-            {
-                izdavaci[index] = izdavac;
-                Save(izdavaci);
-            }
-        }
-
-        // Brisanje
-        public void Delete(string sifra)
-        {
-            List<Izdavac> izdavaci = GetAll();
-
-            Izdavac izdavac = izdavaci.Find(i =>
-                i.Sifra == sifra);
-
-            if (izdavac != null)
-            {
-                izdavaci.Remove(izdavac);
-                Save(izdavaci);
-            }
+            return _izdavaci;
         }
 
 

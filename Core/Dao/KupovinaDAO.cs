@@ -1,83 +1,89 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
-using System.IO;
-using Core.Interfaces;
+
+
 using Core.Models;
 using Core.Utils;
 
 namespace Core.DAO
 {
-    public class KupovinaDAO : IKupovinaDAO
+    public class KupovinaDAO
     {
-        // Putanja do CSV fajla
-        private readonly string _filePath = "Data" + Path.DirectorySeparatorChar + "kupovine.csv";
-        private readonly Serializer<Kupovina> _serializer = new Serializer<Kupovina>();
+        private readonly List<Kupovina> _kupovine;
+        private readonly Storage<Kupovina> _storage;
 
-        // Ucitavanje svih kupovina
-        public List<Kupovina> GetAll()
+        public KupovinaDAO()
         {
-            if (!File.Exists(_filePath))
+            _storage = new Storage<Kupovina>("kupovine.csv");
+            _kupovine = _storage.Load();
+        }
+
+        public Kupovina AddKupovina(Kupovina kupovina)
+        {
+            _kupovine.Add(kupovina);
+            _storage.Save(_kupovine);
+            return kupovina;
+        }
+
+        public Kupovina? UpdateKupovina(Kupovina kupovina)
+        {
+            Kupovina? staraKupovina = GetKupovinaById(
+                kupovina.Posetilac.BrojClanskeKarte,
+                kupovina.Knjiga.ISBN,
+                kupovina.DatumKupovine);
+
+            if (staraKupovina is null)
+                return null;
+
+            staraKupovina.Posetilac = kupovina.Posetilac;
+            staraKupovina.Knjiga = kupovina.Knjiga;
+            staraKupovina.DatumKupovine = kupovina.DatumKupovine;
+            staraKupovina.Ocena = kupovina.Ocena;
+            staraKupovina.Komentar = kupovina.Komentar;
+
+            _storage.Save(_kupovine);
+            return staraKupovina;
+        }
+
+        public Kupovina? GetKupovinaById(
+            string brojClanskeKarte,
+            string isbn,
+            DateTime datumKupovine)
+        {
+            foreach (Kupovina kupovina in _kupovine)
             {
-                return new List<Kupovina>();
+                if (kupovina.Posetilac.BrojClanskeKarte == brojClanskeKarte &&
+                    kupovina.Knjiga.ISBN == isbn &&
+                    kupovina.DatumKupovine == datumKupovine)
+                {
+                    return kupovina;
+                }
             }
 
-            string[] lines = File.ReadAllLines(_filePath);
-
-            return _serializer.FromCSV(lines);
+            return null;
         }
 
-        // Cuvanje kupovina u CSV
-        public void Save(List<Kupovina> kupovine)
+        public Kupovina? RemoveKupovina(
+            string brojClanskeKarte,
+            string isbn,
+            DateTime datumKupovine)
         {
-            string content = _serializer.ToCSV(kupovine);
+            Kupovina? kupovina = GetKupovinaById(
+                brojClanskeKarte, isbn, datumKupovine);
 
-            Directory.CreateDirectory(Path.GetDirectoryName(_filePath)!);
+            if (kupovina is null)
+                return null;
 
-            File.WriteAllText(_filePath, content);
+            _kupovine.Remove(kupovina);
+            _storage.Save(_kupovine);
+
+            return kupovina;
         }
 
-        //Dodavanje nove kupovine
-        public void Add(Kupovina kupovina)
+        public List<Kupovina> GetAllKupovine()
         {
-            List<Kupovina> kupovine = GetAll();
-
-            kupovine.Add(kupovina);
-
-            Save(kupovine);
-        }
-
-        // Izmena
-        public void Update(Kupovina kupovina)
-        {
-            List<Kupovina> kupovine = GetAll();
-
-            int index = kupovine.FindIndex(k =>
-                k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
-                k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
-                k.DatumKupovine == kupovina.DatumKupovine);
-
-            if (index != -1)
-            {
-                kupovine[index] = kupovina;
-                Save(kupovine);
-            }
-        }
-
-        // Brisanje kupovine
-        public void Delete(Kupovina kupovina)
-        {
-            List<Kupovina> kupovine = GetAll();
-
-            Kupovina postojeca = kupovine.Find(k =>
-                k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
-                k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
-                k.DatumKupovine == kupovina.DatumKupovine);
-
-            if (postojeca != null)
-            {
-                kupovine.Remove(postojeca);
-                Save(kupovine);
-            }
+            return _kupovine;
         }
     }
 }
