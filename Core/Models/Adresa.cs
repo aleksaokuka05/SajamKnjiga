@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 using System.Text;
 using Core.Interfaces;
 
@@ -7,21 +7,19 @@ namespace Core.Models
 {
     public class Adresa : ISerializable
     {
-
-        public string Ulica { get; set; } 
-
-        public string Broj { get; set; } 
-
-        public string Grad { get; set; } 
-
-        public string Drzava { get; set; } 
-
+        public int Id { get; set; }
+        public string Ulica { get; set; }
+        public string Broj { get; set; }
+        public string Grad { get; set; }
+        public string Drzava { get; set; }
 
         public Adresa()
         {
-
+            Ulica = string.Empty;
+            Broj = string.Empty;
+            Grad = string.Empty;
+            Drzava = string.Empty;
         }
-
 
         public Adresa(string ulica, string broj, string grad, string drzava)
         {
@@ -31,27 +29,27 @@ namespace Core.Models
             Drzava = drzava;
         }
 
-
         public string[] ToCSV()
         {
             string[] niz_polja =
-                 {
-                     Ulica,
-                     Broj,
-                     Grad,
-                     Drzava
-                 };
+            {
+                Id.ToString(),
+                Ulica,
+                Broj,
+                Grad,
+                Drzava
+            };
 
             return niz_polja;
-
         }
 
         public void FromCSV(string[] values)
         {
-            Ulica = values[0];
-            Broj = values[1];
-            Grad = values[2];
-            Drzava = values[3];
+            Id = int.Parse(values[0]);
+            Ulica = values[1];
+            Broj = values[2];
+            Grad = values[3];
+            Drzava = values[4];
         }
 
         public override string ToString()
@@ -65,6 +63,6 @@ namespace Core.Models
 
             return sb.ToString();
         }
-
     }
 }
+

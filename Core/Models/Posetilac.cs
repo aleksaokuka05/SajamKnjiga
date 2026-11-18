@@ -1,64 +1,100 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Linq;
 using Core.Interfaces;
 
 namespace Core.Models
 {
+    public enum StatusPosetioca
+    {
+        Regular,
+        VIP
+    }
     public class Posetilac : ISerializable
     {
-        public string Ime { get; set; } = string.Empty;
-        public string Prezime { get; set; } = string.Empty;
+        public int Id { get; set; }
+
+        public string Ime { get; set; }
+        public string Prezime { get; set; }
         public DateTime DatumRodjenja { get; set; }
-        public Adresa Adresa { get; set; }
-        public string KontaktTelefon { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string BrojClanskeKarte { get; set; } = string.Empty;
-        public int TrenutnaGodinaClanstva {  get; set; }
-        public StatusPosetioca Status {  get; set; }
-        public double ProsecnaOcena { get; set; }
-        public List<Kupovina> Kupovine { get; set; } = new();
-        public List<Knjiga> ListaZelja { get; set; } = new();
+
+        public int AdresaId { get; set; }
+        public Adresa? Adresa { get; set; }
+
+        public string KontaktTelefon { get; set; }
+        public string Email { get; set; }
+        public string BrojClanskeKarte { get; set; }
+
+        public int TrenutnaGodinaClanstva { get; set; }
+        public StatusPosetioca Status { get; set; }
+       
+
+        public List<Kupovina> Kupovine { get; set; }
+        public List<Knjiga> ListaZelja { get; set; }
+
+        public double ProsecnaOcena
+        {
+            get
+            {
+                if (Kupovine.Count == 0)
+                {
+                    return 0;
+                }
+
+                return Kupovine.Average(kupovina => kupovina.Ocena);
+            }
+        }
 
         public Posetilac()
         {
-            Adresa = new Adresa();
+            Ime = string.Empty;
+            Prezime = string.Empty;
+            KontaktTelefon = string.Empty;
+            Email = string.Empty;
+            BrojClanskeKarte = string.Empty;
+            Status = StatusPosetioca.Regular;
+
+            Kupovine = new List<Kupovina>();
+            ListaZelja = new List<Knjiga>();
         }
 
         public Posetilac(string ime, string prezime, DateTime datumRodjenja,
             Adresa adresa, string kontaktTelefon, string email,
             string brojClanskeKarte, int trenutnaGodinaClanstva,
-            StatusPosetioca status, double prosecnaOcena)
+            StatusPosetioca status)
         {
             Ime = ime;
             Prezime = prezime;
             DatumRodjenja = datumRodjenja;
             Adresa = adresa;
+            AdresaId = adresa.Id;
             KontaktTelefon = kontaktTelefon;
             Email = email;
             BrojClanskeKarte = brojClanskeKarte;
             TrenutnaGodinaClanstva = trenutnaGodinaClanstva;
             Status = status;
-            ProsecnaOcena = prosecnaOcena;
+           
+
+            Kupovine = new List<Kupovina>();
+            ListaZelja = new List<Knjiga>();
         }
 
         public string[] ToCSV()
         {
             string[] niz_polja =
             {
+                Id.ToString(),
                 Ime,
                 Prezime,
                 DatumRodjenja.ToString("dd.MM.yyyy"),
-                Adresa.Ulica,
-                Adresa.Broj,
-                Adresa.Grad,
-                Adresa.Drzava,
+                AdresaId.ToString(),
                 KontaktTelefon,
                 Email,
                 BrojClanskeKarte,
                 TrenutnaGodinaClanstva.ToString(),
-                Status.ToString(),
-                ProsecnaOcena.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                Status.ToString()
+        
             };
 
             return niz_polja;
@@ -66,29 +102,49 @@ namespace Core.Models
 
         public void FromCSV(string[] values)
         {
-            Ime = values[0];
-            Prezime = values[1];
-            DatumRodjenja = DateTime.ParseExact(values[2], "dd.MM.yyyy",
+            Id = int.Parse(values[0]);
+            Ime = values[1];
+            Prezime = values[2];
+
+            DatumRodjenja = DateTime.ParseExact(
+                values[3],
+                "dd.MM.yyyy",
                 System.Globalization.CultureInfo.InvariantCulture);
 
-            Adresa = new Adresa
-            {
-                Ulica = values[3],
-                Broj = values[4],
-                Grad = values[5],
-                Drzava = values[6]
-            };
-
-            KontaktTelefon = values[7];
-            Email = values[8];
-            BrojClanskeKarte = values[9];
-            TrenutnaGodinaClanstva = int.Parse(values[10]);
-            Status = Enum.Parse<StatusPosetioca>(values[11]);
-            ProsecnaOcena = double.Parse(values[12],
-            System.Globalization.CultureInfo.InvariantCulture);
+            AdresaId = int.Parse(values[4]);
+            KontaktTelefon = values[5];
+            Email = values[6];
+            BrojClanskeKarte = values[7];
+            TrenutnaGodinaClanstva = int.Parse(values[8]);
+            Status = Enum.Parse<StatusPosetioca>(values[9]);
 
             Kupovine = new List<Kupovina>();
             ListaZelja = new List<Knjiga>();
+        }
+
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append("IME: " + Ime + ", ");
+            sb.Append("PREZIME: " + Prezime + ", ");
+            sb.Append("DATUM RODJENJA: " + DatumRodjenja.ToString("dd.MM.yyyy") + ", ");
+            sb.Append("ADRESA: " + Adresa + ", ");
+            sb.Append("TELEFON: " + KontaktTelefon + ", ");
+            sb.Append("EMAIL: " + Email + ", ");
+            sb.Append("BROJ CLANSKE KARTE: " + BrojClanskeKarte + ", ");
+            sb.Append("GODINA CLANSTVA: " + TrenutnaGodinaClanstva + ", ");
+            sb.Append("STATUS: " + Status + ", ");
+            sb.Append("PROSECNA OCENA: " + ProsecnaOcena + ", ");
+
+            sb.Append("KUPOVINE: ");
+            sb.AppendJoin(", ", Kupovine.Select(kupovina => kupovina.Knjiga?.Naziv));
+
+            sb.Append(", LISTA ZELJA: ");
+            sb.AppendJoin(", ", ListaZelja.Select(knjiga => knjiga.Naziv));
+
+            return sb.ToString();
         }
 
     }
