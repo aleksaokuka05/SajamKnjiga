@@ -28,29 +28,36 @@ namespace Core.Services
                 .Any(p => p.BrojClanskeKarte == posetilac.BrojClanskeKarte);
 
             if (postoji)
+            {
                 throw new InvalidOperationException(
                     "Posetilac sa ovim brojem clanske karte vec postoji.");
+            }
 
             _posetilacDAO.AddPosetilac(posetilac);
         }
 
         public void Update(Posetilac posetilac)
         {
-            Posetilac? rezultat = _posetilacDAO.UpdatePosetilac(posetilac);
+            Posetilac? rezultat =
+                _posetilacDAO.UpdatePosetilac(posetilac);
 
             if (rezultat is null)
+            {
                 throw new InvalidOperationException(
-                    "Posetilac sa ovim brojem clanske karte ne postoji.");
+                    "Posetilac sa ovim ID-jem ne postoji.");
+            }
         }
 
-        public void Delete(string brojClanskeKarte)
+        public void Delete(int id)
         {
             Posetilac? rezultat =
-                _posetilacDAO.RemovePosetilac(brojClanskeKarte);
+                _posetilacDAO.RemovePosetilac(id);
 
             if (rezultat is null)
+            {
                 throw new InvalidOperationException(
-                    "Posetilac sa ovim brojem clanske karte ne postoji.");
+                    "Posetilac sa ovim ID-jem ne postoji.");
+            }
         }
     }
 }

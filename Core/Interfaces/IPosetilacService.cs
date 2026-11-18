@@ -10,6 +10,6 @@ namespace Core.Interfaces
 
         void Update(Posetilac posetilac);
 
-        void Delete(string brojClanskeKarte);
+        void Delete(int id);
     }
 }

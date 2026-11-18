@@ -24,36 +24,42 @@ namespace Core.Services
 
         public void Add(Kupovina kupovina)
         {
-            bool postoji = _kupovinaDAO.GetAllKupovine().Any(k =>
-                k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
-                k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
-                k.DatumKupovine == kupovina.DatumKupovine);
+            bool postoji = _kupovinaDAO.GetAllKupovine()
+                .Any(k => k.PosetilacId == kupovina.PosetilacId
+                       && k.KnjigaId == kupovina.KnjigaId
+                       && k.DatumKupovine == kupovina.DatumKupovine);
 
             if (postoji)
+            {
                 throw new InvalidOperationException(
                     "Ova kupovina vec postoji.");
+            }
 
             _kupovinaDAO.AddKupovina(kupovina);
         }
 
         public void Update(Kupovina kupovina)
         {
-            Kupovina? rezultat = _kupovinaDAO.UpdateKupovina(kupovina);
+            Kupovina? rezultat =
+                _kupovinaDAO.UpdateKupovina(kupovina);
 
             if (rezultat is null)
+            {
                 throw new InvalidOperationException(
-                    "Kupovina ne postoji.");
+                    "Kupovina sa ovim ID-jem ne postoji.");
+            }
         }
 
         public void Delete(Kupovina kupovina)
         {
-            Kupovina? rezultat = _kupovinaDAO.RemoveKupovina(
-                kupovina.Posetilac.BrojClanskeKarte,
-                kupovina.Knjiga.ISBN,
-                kupovina.DatumKupovine);
+            Kupovina? rezultat =
+                _kupovinaDAO.RemoveKupovina(kupovina.Id);
 
             if (rezultat is null)
-                throw new InvalidOperationException("Kupovina ne postoji.");
+            {
+                throw new InvalidOperationException(
+                    "Kupovina sa ovim ID-jem ne postoji.");
+            }
         }
     }
 }

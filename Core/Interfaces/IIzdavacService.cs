@@ -7,6 +7,6 @@ namespace Core.Interfaces
         List<Izdavac> GetAll();
         void Add(Izdavac izdavac);
         void Update(Izdavac izdavac);
-        void Delete(string sifra);
+        void Delete(int id);
     }
-}
+    }
