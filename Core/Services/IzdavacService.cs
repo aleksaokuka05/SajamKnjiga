@@ -1,14 +1,16 @@
-﻿using Core.Interfaces;
-using Core.DAO;
-using Core.Models;
+﻿
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Core.DAO;
+using Core.Interfaces;
+using Core.Models;
 
 namespace Core.Services
 {
     public class IzdavacService : IIzdavacService
     {
-        private readonly IIzdavacDAO _izdavacDAO;
+        private readonly IzdavacDAO _izdavacDAO;
 
         public IzdavacService()
         {
@@ -17,55 +19,37 @@ namespace Core.Services
 
         public List<Izdavac> GetAll()
         {
-            return _izdavacDAO.GetAll();
+            return _izdavacDAO.GetAllIzdavaci();
         }
 
         public void Add(Izdavac izdavac)
         {
-            List<Izdavac> izdavaci = _izdavacDAO.GetAll();
-
-            bool postoji = izdavaci.Any(i =>
-                i.Sifra == izdavac.Sifra);
+            bool postoji = _izdavacDAO.GetAllIzdavaci()
+                .Any(i => i.Sifra == izdavac.Sifra);
 
             if (postoji)
-            {
                 throw new InvalidOperationException(
                     "Izdavac sa ovom sifrom vec postoji.");
-            }
 
-            _izdavacDAO.Add(izdavac);
+            _izdavacDAO.AddIzdavac(izdavac);
         }
 
         public void Update(Izdavac izdavac)
         {
-            List<Izdavac> izdavaci = _izdavacDAO.GetAll();
+            Izdavac? rezultat = _izdavacDAO.UpdateIzdavac(izdavac);
 
-            bool postoji = izdavaci.Any(i =>
-                i.Sifra == izdavac.Sifra);
-
-            if (!postoji)
-            {
+            if (rezultat is null)
                 throw new InvalidOperationException(
                     "Izdavac sa ovom sifrom ne postoji.");
-            }
-
-            _izdavacDAO.Update(izdavac);
         }
 
         public void Delete(string sifra)
         {
-            List<Izdavac> izdavaci = _izdavacDAO.GetAll();
+            Izdavac? rezultat = _izdavacDAO.RemoveIzdavac(sifra);
 
-            bool postoji = izdavaci.Any(i =>
-                i.Sifra == sifra);
-
-            if (!postoji)
-            {
+            if (rezultat is null)
                 throw new InvalidOperationException(
                     "Izdavac sa ovom sifrom ne postoji.");
-            }
-
-            _izdavacDAO.Delete(sifra);
         }
     }
 }

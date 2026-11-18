@@ -1,14 +1,16 @@
-﻿using Core.Interfaces;
-using Core.DAO;
-using Core.Models;
+﻿
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using Core.DAO;
+using Core.Interfaces;
+using Core.Models;
 
 namespace Core.Services
 {
     public class KupovinaService : IKupovinaService
     {
-        private readonly IKupovinaDAO _kupovinaDAO;
+        private readonly KupovinaDAO _kupovinaDAO;
 
         public KupovinaService()
         {
@@ -17,61 +19,41 @@ namespace Core.Services
 
         public List<Kupovina> GetAll()
         {
-            return _kupovinaDAO.GetAll();
+            return _kupovinaDAO.GetAllKupovine();
         }
 
         public void Add(Kupovina kupovina)
         {
-            List<Kupovina> kupovine = _kupovinaDAO.GetAll();
-
-            bool postoji = kupovine.Any(k =>
+            bool postoji = _kupovinaDAO.GetAllKupovine().Any(k =>
                 k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
                 k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
                 k.DatumKupovine == kupovina.DatumKupovine);
 
             if (postoji)
-            {
                 throw new InvalidOperationException(
                     "Ova kupovina vec postoji.");
-            }
 
-            _kupovinaDAO.Add(kupovina);
+            _kupovinaDAO.AddKupovina(kupovina);
         }
 
         public void Update(Kupovina kupovina)
         {
-            List<Kupovina> kupovine = _kupovinaDAO.GetAll();
+            Kupovina? rezultat = _kupovinaDAO.UpdateKupovina(kupovina);
 
-            bool postoji = kupovine.Any(k =>
-                k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
-                k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
-                k.DatumKupovine == kupovina.DatumKupovine);
-
-            if (!postoji)
-            {
+            if (rezultat is null)
                 throw new InvalidOperationException(
                     "Kupovina ne postoji.");
-            }
-
-            _kupovinaDAO.Update(kupovina);
         }
 
         public void Delete(Kupovina kupovina)
         {
-            List<Kupovina> kupovine = _kupovinaDAO.GetAll();
+            Kupovina? rezultat = _kupovinaDAO.RemoveKupovina(
+                kupovina.Posetilac.BrojClanskeKarte,
+                kupovina.Knjiga.ISBN,
+                kupovina.DatumKupovine);
 
-            bool postoji = kupovine.Any(k =>
-                k.Posetilac.BrojClanskeKarte == kupovina.Posetilac.BrojClanskeKarte &&
-                k.Knjiga.ISBN == kupovina.Knjiga.ISBN &&
-                k.DatumKupovine == kupovina.DatumKupovine);
-
-            if (!postoji)
-            {
-                throw new InvalidOperationException(
-                    "Kupovina ne postoji.");
-            }
-
-            _kupovinaDAO.Delete(kupovina);
+            if (rezultat is null)
+                throw new InvalidOperationException("Kupovina ne postoji.");
         }
     }
 }
