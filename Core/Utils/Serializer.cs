@@ -5,6 +5,7 @@ using Core.Interfaces;
 
 namespace Core.Utils
 {
+    // Izvor: OISISI, Vezbe 3, SerializationExample/Serializer.cs
     public class Serializer<T> where T : ISerializable, new()
     {
 

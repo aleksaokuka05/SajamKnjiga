@@ -3,6 +3,8 @@ using Core.Interfaces;
 
 namespace Core.Models
 {
+    // Veza knjiga - autor je many to many.
+    // Serijalizujemo je pomocu ove klase, po uzoru na StudentSubject sa vezbi.
     public class KnjigaAutor : ISerializable
     {
         public int KnjigaId { get; set; }

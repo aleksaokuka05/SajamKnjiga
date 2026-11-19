@@ -7,6 +7,7 @@ using Core.Utils;
 
 namespace Core.DAO
 {
+    // Izvor: OISISI, Vezbe 3, CRUDExample (DAO pattern)
     public class PosetilacDAO
     {
         private readonly List<Posetilac> _posetioci;
