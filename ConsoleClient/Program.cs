@@ -1,6 +1,5 @@
-﻿using Core.DAO;
+﻿using System.Text;
+using ConsoleClient.Views;
 
-Console.WriteLine("Sajam knjiga");
-PosetilacDAO posetilacDAO = new PosetilacDAO();
-
-Console.WriteLine("Broj posetilaca: " + posetilacDAO.GetAllPosetioci().Count);
+Console.OutputEncoding = Encoding.UTF8;
+new MainConsoleView().RunMenu();
