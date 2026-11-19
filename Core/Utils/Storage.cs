@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Core.Utils;
 using Core.Interfaces;
 
 namespace Core.Utils
@@ -14,8 +15,8 @@ namespace Core.Utils
 
         public Storage(string imeFajla)
         {
-            _imeFajla = Path.Combine("Data", imeFajla);
-            Directory.CreateDirectory("Data");
+            _imeFajla = DataPaths.GetFilePath(imeFajla);
+            Directory.CreateDirectory(DataPaths.DataDirectory);
         }
 
         public List<T> Load()
@@ -36,6 +37,7 @@ namespace Core.Utils
         public void Save(List<T> objekti)
         {
             string serijalizovaniObjekti = _serijalizator.ToCSV(objekti);
+            Directory.CreateDirectory(DataPaths.DataDirectory);
 
             using (StreamWriter pisac = new StreamWriter(_imeFajla))
             {
