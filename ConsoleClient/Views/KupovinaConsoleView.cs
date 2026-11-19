@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Core.DAO;
 using Core.Models;
+using Core.Services;
 
 namespace ConsoleClient.Views
 {
@@ -11,15 +12,18 @@ namespace ConsoleClient.Views
         private readonly KupovinaDAO _kupovinaDAO;
         private readonly PosetilacDAO _posetilacDAO;
         private readonly KnjigaDAO _knjigaDAO;
+        private readonly LinkService _linkService;
 
         public KupovinaConsoleView(
             KupovinaDAO kupovinaDAO,
             PosetilacDAO posetilacDAO,
-            KnjigaDAO knjigaDAO)
+            KnjigaDAO knjigaDAO,
+            LinkService linkService)
         {
             _kupovinaDAO = kupovinaDAO;
             _posetilacDAO = posetilacDAO;
             _knjigaDAO = knjigaDAO;
+            _linkService = linkService;
         }
 
         public void RunMenu()
@@ -30,11 +34,10 @@ namespace ConsoleClient.Views
                 string izbor = Console.ReadLine() ?? "0";
 
                 if (izbor == "0")
-                {
                     return;
-                }
 
                 ObradiIzbor(izbor);
+                _linkService.LinkAll();
             }
         }
 
@@ -75,18 +78,21 @@ namespace ConsoleClient.Views
 
             foreach (Kupovina kupovina in kupovine)
             {
-                string posetilac = kupovina.Posetilac is null
-                    ? $"ID {kupovina.PosetilacId}"
-                    : $"{kupovina.Posetilac.Ime} {kupovina.Posetilac.Prezime}";
+                Posetilac? posetilac =
+                    _posetilacDAO.GetPosetilacById(kupovina.PosetilacId);
 
-                string knjiga = kupovina.Knjiga is null
-                    ? $"ID {kupovina.KnjigaId}"
-                    : kupovina.Knjiga.Naziv;
+                string imePosetioca = posetilac is null
+                    ? "nepoznat"
+                    : $"{posetilac.Ime} {posetilac.Prezime}";
+
+                string nazivKnjige = _knjigaDAO
+                    .GetKnjigaById(kupovina.KnjigaId)?.Naziv
+                    ?? "nepoznata";
 
                 Console.WriteLine(
                     $"ID: {kupovina.Id}, " +
-                    $"POSETILAC: {posetilac}, " +
-                    $"KNJIGA: {knjiga}, " +
+                    $"POSETILAC: {imePosetioca}, " +
+                    $"KNJIGA: {nazivKnjige}, " +
                     $"DATUM: {kupovina.DatumKupovine:dd.MM.yyyy}, " +
                     $"OCENA: {kupovina.Ocena}, " +
                     $"KOMENTAR: {kupovina.Komentar}");
@@ -95,32 +101,31 @@ namespace ConsoleClient.Views
 
         private void DodajKupovinu()
         {
-            Kupovina? kupovina = UnesiKupovinu();
-
-            if (kupovina is null)
-            {
+            if (!PostojePosetiociIKnjige())
                 return;
-            }
+
+            Kupovina kupovina = UnesiKupovinu();
 
             _kupovinaDAO.AddKupovina(kupovina);
 
-            Console.WriteLine("Uspesno dodata kupovina.");
+            Console.WriteLine("Uspesno dodato.");
         }
 
         private void IzmeniKupovinu()
         {
             Console.Write("ID kupovine: ");
+            int id = ConsoleViewUtils.SiguranUnosCelogBroja();
 
-            int id = ConsoleViewUtils.SiguranUnosPostojecegId(
-                unos => _kupovinaDAO.GetKupovinaById(unos) is not null);
-
-            Kupovina? kupovina = UnesiKupovinu();
-
-            if (kupovina is null)
+            if (_kupovinaDAO.GetKupovinaById(id) is null)
             {
+                Console.WriteLine("Nije pronadjeno.");
                 return;
             }
 
+            if (!PostojePosetiociIKnjige())
+                return;
+
+            Kupovina kupovina = UnesiKupovinu();
             kupovina.Id = id;
 
             Kupovina? izmenjena =
@@ -128,101 +133,79 @@ namespace ConsoleClient.Views
 
             Console.WriteLine(
                 izmenjena is null
-                    ? "Nije pronadjena."
-                    : "Uspesno izmenjena.");
+                    ? "Nije pronadjeno."
+                    : "Uspesno izmenjeno.");
         }
 
         private void ObrisiKupovinu()
         {
             Console.Write("ID kupovine: ");
+            int id = ConsoleViewUtils.SiguranUnosCelogBroja();
 
-            int id = ConsoleViewUtils.SiguranUnosPostojecegId(
-                unos => _kupovinaDAO.GetKupovinaById(unos) is not null);
+            Kupovina? obrisana =
+                _kupovinaDAO.RemoveKupovina(id);
 
-            _kupovinaDAO.RemoveKupovina(id);
-
-            Console.WriteLine("Uspesno obrisana kupovina.");
+            Console.WriteLine(
+                obrisana is null
+                    ? "Nije pronadjeno."
+                    : "Uspesno obrisano.");
         }
 
-        private Kupovina? UnesiKupovinu()
+        private bool PostojePosetiociIKnjige()
         {
-            List<Posetilac> posetioci =
-                _posetilacDAO.GetAllPosetioci();
-
-            List<Knjiga> knjige =
-                _knjigaDAO.GetAllKnjige();
-
-            if (posetioci.Count == 0)
+            if (_posetilacDAO.GetAllPosetioci().Count == 0)
             {
-                Console.WriteLine("Nema dostupnih posetilaca.");
-                return null;
+                Console.WriteLine("Prvo dodaj bar jednog posetioca.");
+                return false;
             }
 
-            if (knjige.Count == 0)
+            if (_knjigaDAO.GetAllKnjige().Count == 0)
             {
-                Console.WriteLine("Nema dostupnih knjiga.");
-                return null;
+                Console.WriteLine("Prvo dodaj bar jednu knjigu.");
+                return false;
             }
 
-            Console.WriteLine("Dostupni posetioci:");
+            return true;
+        }
 
-            foreach (Posetilac posetilac in posetioci)
-            {
-                Console.WriteLine(
-                    $"ID: {posetilac.Id}, " +
-                    $"{posetilac.Ime} {posetilac.Prezime}");
-            }
+        private Kupovina UnesiKupovinu()
+        {
+            Kupovina kupovina = new Kupovina();
 
             Console.Write("ID posetioca: ");
 
-            int posetilacId =
+            kupovina.PosetilacId =
                 ConsoleViewUtils.SiguranUnosPostojecegId(
-                    unos => _posetilacDAO.GetPosetilacById(unos) is not null);
+                    id => _posetilacDAO.GetPosetilacById(id) is not null);
 
-            Posetilac posetilacIzbor =
-                _posetilacDAO.GetPosetilacById(posetilacId)!;
-
-            Console.WriteLine("Dostupne knjige:");
-
-            foreach (Knjiga knjiga in knjige)
-            {
-                Console.WriteLine(
-                    $"ID: {knjiga.Id}, " +
-                    $"NAZIV: {knjiga.Naziv}, " +
-                    $"ISBN: {knjiga.ISBN}");
-            }
+            kupovina.Posetilac =
+                _posetilacDAO.GetPosetilacById(kupovina.PosetilacId);
 
             Console.Write("ID knjige: ");
 
-            int knjigaId =
+            kupovina.KnjigaId =
                 ConsoleViewUtils.SiguranUnosPostojecegId(
-                    unos => _knjigaDAO.GetKnjigaById(unos) is not null);
+                    id => _knjigaDAO.GetKnjigaById(id) is not null);
 
-            Knjiga knjigaIzbor =
-                _knjigaDAO.GetKnjigaById(knjigaId)!;
+            kupovina.Knjiga =
+                _knjigaDAO.GetKnjigaById(kupovina.KnjigaId);
 
             Console.Write("Datum kupovine (dd.MM.yyyy): ");
 
-            DateTime datumKupovine =
+            kupovina.DatumKupovine =
                 ConsoleViewUtils.SiguranUnosDatuma();
 
             Console.Write("Ocena (1-5): ");
 
-            int ocena =
+            kupovina.Ocena =
                 ConsoleViewUtils.SiguranUnosOcene();
 
             Console.Write("Komentar: ");
 
-            string komentar =
+            kupovina.Komentar =
                 ConsoleViewUtils.SiguranUnosTeksta(false);
 
-            return new Kupovina(
-                posetilacIzbor,
-                knjigaIzbor,
-                datumKupovine,
-                ocena,
-                komentar);
+            return kupovina;
         }
     }
 }
-

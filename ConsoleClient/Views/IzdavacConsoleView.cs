@@ -1,21 +1,24 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Core.DAO;
 using Core.Models;
+using Core.Services;
 
 namespace ConsoleClient.Views
 {
     public class IzdavacConsoleView
     {
-        private readonly IzdavacDAO _izdavacDAO;
+        private readonly PublisherService _publisherService;
+        private readonly LinkService _linkService;
         private readonly AutorDAO _autorDAO;
 
         public IzdavacConsoleView(
-            IzdavacDAO izdavacDAO,
+            PublisherService publisherService,
+            LinkService linkService,
             AutorDAO autorDAO)
         {
-            _izdavacDAO = izdavacDAO;
+            _publisherService = publisherService;
+            _linkService = linkService;
             _autorDAO = autorDAO;
         }
 
@@ -27,11 +30,10 @@ namespace ConsoleClient.Views
                 string izbor = Console.ReadLine() ?? "0";
 
                 if (izbor == "0")
-                {
                     return;
-                }
 
                 ObradiIzbor(izbor);
+                _linkService.LinkAll();
             }
         }
 
@@ -43,6 +45,7 @@ namespace ConsoleClient.Views
             Console.WriteLine("2 - Dodaj");
             Console.WriteLine("3 - Izmeni");
             Console.WriteLine("4 - Obrisi");
+            Console.WriteLine("5 - Knjige i autori izdavaca");
             Console.WriteLine("0 - Nazad");
             Console.Write("Izbor: ");
         }
@@ -55,14 +58,65 @@ namespace ConsoleClient.Views
                 case "2": DodajIzdavaca(); break;
                 case "3": IzmeniIzdavaca(); break;
                 case "4": ObrisiIzdavaca(); break;
+                case "5": PrikaziKnjigeIAutoreIzdavaca(); break;
                 default: Console.WriteLine("Nepoznata opcija."); break;
+            }
+        }
+
+        private void PrikaziKnjigeIAutoreIzdavaca()
+        {
+            Console.Write("ID izdavaca: ");
+            int id = ConsoleViewUtils.SiguranUnosCelogBroja();
+
+            Izdavac? izdavac =
+                _publisherService.PronadjiIzdavacaPoId(id);
+
+            if (izdavac is null)
+            {
+                Console.WriteLine("Nije pronadjeno.");
+                return;
+            }
+
+            _linkService.LinkAll();
+
+            Console.WriteLine();
+            Console.WriteLine(
+                $"=== KNJIGE IZDAVACA: {izdavac.Naziv} ===");
+
+            if (izdavac.Knjige.Count == 0)
+            {
+                Console.WriteLine("Izdavac nema knjiga.");
+            }
+
+            foreach (Knjiga knjiga in izdavac.Knjige)
+            {
+                Console.WriteLine(
+                    $"ID: {knjiga.Id}, " +
+                    $"ISBN: {knjiga.ISBN}, " +
+                    $"NASLOV: {knjiga.Naziv}, " +
+                    $"GODINA: {knjiga.GodinaIzdanja}");
+            }
+
+            Console.WriteLine(
+                $"=== AUTORI IZDAVACA: {izdavac.Naziv} ===");
+
+            if (izdavac.Autori.Count == 0)
+            {
+                Console.WriteLine("Izdavac nema autora.");
+            }
+
+            foreach (Autor autor in izdavac.Autori)
+            {
+                Console.WriteLine(
+                    $"ID: {autor.Id}, " +
+                    $"IME: {autor.Ime} {autor.Prezime}");
             }
         }
 
         private void PrikaziSveIzdavace()
         {
             List<Izdavac> izdavaci =
-                _izdavacDAO.GetAllIzdavaci();
+                _publisherService.PrikaziSveIzdavace();
 
             if (izdavaci.Count == 0)
             {
@@ -72,82 +126,140 @@ namespace ConsoleClient.Views
 
             foreach (Izdavac izdavac in izdavaci)
             {
-                string sef = izdavac.SefIzdavaca is null
-                    ? $"ID {izdavac.SefIzdavacaId}"
-                    : $"{izdavac.SefIzdavaca.Ime} {izdavac.SefIzdavaca.Prezime}";
-
                 Console.WriteLine(
                     $"ID: {izdavac.Id}, " +
                     $"SIFRA: {izdavac.Sifra}, " +
                     $"NAZIV: {izdavac.Naziv}, " +
-                    $"SEF IZDAVACA: {sef}");
+                    $"SEF: {SefIzdavacaUTekst(izdavac)}");
             }
         }
 
         private void DodajIzdavaca()
         {
+            if (!PostojeAutori())
+                return;
+
             Izdavac izdavac = UnesiIzdavaca();
 
-            _izdavacDAO.AddIzdavac(izdavac);
-
-            Console.WriteLine("Uspesno dodat izdavac.");
+            try
+            {
+                _publisherService.DodajIzdavaca(izdavac);
+                Console.WriteLine("Uspesno dodat izdavac.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private void IzmeniIzdavaca()
         {
             Console.Write("ID izdavaca: ");
+            int id = ConsoleViewUtils.SiguranUnosCelogBroja();
 
-            int id = ConsoleViewUtils.SiguranUnosPostojecegId(
-                unos => _izdavacDAO.GetIzdavacById(unos) is not null);
+            if (_publisherService.PronadjiIzdavacaPoId(id) is null)
+            {
+                Console.WriteLine("Nije pronadjeno.");
+                return;
+            }
+
+            if (!PostojeAutori())
+                return;
 
             Izdavac izdavac = UnesiIzdavaca();
             izdavac.Id = id;
 
-            Izdavac? izmenjen =
-                _izdavacDAO.UpdateIzdavac(izdavac);
+            try
+            {
+                Izdavac? izmenjen =
+                    _publisherService.IzmeniIzdavaca(izdavac);
 
-            Console.WriteLine(
-                izmenjen is null
-                    ? "Nije pronadjen."
-                    : "Uspesno izmenjen.");
+                Console.WriteLine(
+                    izmenjen is null
+                        ? "Nije pronadjeno."
+                        : "Uspesno izmenjen.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private void ObrisiIzdavaca()
         {
             Console.Write("ID izdavaca: ");
+            int id = ConsoleViewUtils.SiguranUnosCelogBroja();
 
-            int id = ConsoleViewUtils.SiguranUnosPostojecegId(
-                unos => _izdavacDAO.GetIzdavacById(unos) is not null);
+            try
+            {
+                Izdavac? obrisan =
+                    _publisherService.ObrisiIzdavaca(id);
 
-            _izdavacDAO.RemoveIzdavac(id);
+                Console.WriteLine(
+                    obrisan is null
+                        ? "Nije pronadjeno."
+                        : "Uspesno obrisan.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
-            Console.WriteLine("Uspesno obrisan izdavac.");
+        private string SefIzdavacaUTekst(Izdavac izdavac)
+        {
+            if (izdavac.SefIzdavacaId == 0)
+                return "nema";
+
+            Autor? sefIzdavaca =
+                _publisherService.PronadjiSefaIzdavaca(izdavac);
+
+            return sefIzdavaca is null
+                ? "nepoznat"
+                : $"{sefIzdavaca.Ime} {sefIzdavaca.Prezime}";
+        }
+
+        private bool PostojeAutori()
+        {
+            if (_autorDAO.GetAllAutori().Count > 0)
+                return true;
+
+            Console.WriteLine("Prvo dodaj bar jednog autora.");
+            return false;
         }
 
         private Izdavac UnesiIzdavaca()
         {
-            Console.Write("Sifra: ");
-            string sifra = ConsoleViewUtils.SiguranUnosTeksta();
+            Izdavac izdavac = new Izdavac();
+
+            Console.Write("Sifra izdavaca: ");
+            izdavac.Sifra =
+                ConsoleViewUtils.SiguranUnosTeksta();
 
             Console.Write("Naziv: ");
-            string naziv = ConsoleViewUtils.SiguranUnosTeksta();
+            izdavac.Naziv =
+                ConsoleViewUtils.SiguranUnosTeksta();
 
             Console.WriteLine("Dostupni autori:");
 
             foreach (Autor autor in _autorDAO.GetAllAutori())
             {
                 Console.WriteLine(
-                    $"ID: {autor.Id}, {autor.Ime} {autor.Prezime}");
+                    $"ID: {autor.Id}, " +
+                    $"{autor.Ime} {autor.Prezime}, " +
+                    $"ISKUSTVO: {autor.GodineIskustva}");
             }
 
             Console.Write("ID autora koji je sef izdavaca: ");
 
-            int autorId = ConsoleViewUtils.SiguranUnosPostojecegId(
-                unos => _autorDAO.GetAutorById(unos) is not null);
+            izdavac.SefIzdavacaId =
+                ConsoleViewUtils.SiguranUnosPostojecegId(
+                    id => _autorDAO.GetAutorById(id) is not null);
 
-            Autor sefIzdavaca = _autorDAO.GetAutorById(autorId)!;
+            izdavac.SefIzdavaca =
+                _autorDAO.GetAutorById(izdavac.SefIzdavacaId);
 
-            return new Izdavac(sifra, naziv, sefIzdavaca);
+            return izdavac;
         }
     }
 }
