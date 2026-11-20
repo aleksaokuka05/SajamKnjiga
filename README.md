@@ -6,7 +6,7 @@ Konzolna aplikacija za upravljanje sajmom knjiga(kontrolna tacka 8.1 - 8.4): dod
 **Student 1:** Aleksa Okuka RA205-2024  
 **Student 2:** Luka Marceta RA199-2024
 
-## Podela posla
+# Podela posla
 ### Student 1 - Aleksa Okuka
 - **Modeli:** Posetilac, Kupovina, Izdavac
 - **DAO klase:** PosetilacDAO, KupovinaDAO, IzdavacDAO
