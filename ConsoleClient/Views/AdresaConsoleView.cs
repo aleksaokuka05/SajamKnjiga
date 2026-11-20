@@ -126,13 +126,13 @@ namespace ConsoleClient.Views
             Console.WriteLine("Uspesno obrisano.");
         }
 
+        // Adresa se ne brise dok je koristi neki posetilac ili autor,
+        // da oni ne bi ostali sa adresom koja ne postoji
         private bool DaLiSeAdresaKoristi(int adresaId)
         {
-            int brojPosetilaca = _posetilacDAO.GetAllPosetioci()
-                .FindAll(p => p.AdresaId == adresaId).Count;
+            int brojPosetilaca = _posetilacDAO.GetAllPosetioci().FindAll(p => p.AdresaId == adresaId).Count;
 
-            int brojAutora = _autorDAO.GetAllAutori()
-                .FindAll(a => a.AdresaId == adresaId).Count;
+            int brojAutora = _autorDAO.GetAllAutori().FindAll(a => a.AdresaId == adresaId).Count;
 
             if (brojPosetilaca == 0 && brojAutora == 0)
             {

@@ -3,6 +3,11 @@ using Core.Models;
 
 namespace Core.Services
 {
+
+    // Povezuje objekte u memoriji (author.Books, book.Authors, visitor.Purchases, ...).
+    // U fajlovima se cuvaju samo ID-jevi, a ova klasa iz njih puni liste u modelima.
+    // LinkAll se poziva pri pokretanju i posle svake izmene podataka,
+    // pa liste uvek odgovaraju onome sto je u fajlovima.
     public class LinkService
     {
         private readonly AdresaDAO _adresaDAO;
@@ -214,6 +219,7 @@ namespace Core.Services
             }
         }
 
+        // Autori izdavaca su autori njegovih knjiga, svaki samo jednom
         private void PoveziAutoreIzdavaca()
         {
             foreach (Izdavac izdavac in _izdavacDAO.GetAllIzdavaci())

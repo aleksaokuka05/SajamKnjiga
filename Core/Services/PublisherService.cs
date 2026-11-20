@@ -6,6 +6,10 @@ using Core.Models;
 
 namespace Core.Services
 {
+
+    // Poslovna logika za izdavace.
+    // Sef izdavaca mora biti postojeci autor sa najmanje 5 godina iskustva,
+    // a izdavac koji ima knjige ne moze da se obrise
     public class PublisherService
     {
         public const int MinimalnoIskustvoSefa = 5;
@@ -79,6 +83,8 @@ namespace Core.Services
 
         private void ProveriSefaIzdavaca(int sefIzdavacaId)
         {
+
+            // Izdavac ne mora da ima sefa
             if (sefIzdavacaId == 0)
             {
                 return;

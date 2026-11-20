@@ -6,6 +6,7 @@ using Core.Interfaces;
 
 namespace Core.Utils
 {
+    // Izvor: OISISI, Vezbe 3, SerializationExample/Storage.cs
     public class Storage<T> where T : ISerializable, new()
     {
 

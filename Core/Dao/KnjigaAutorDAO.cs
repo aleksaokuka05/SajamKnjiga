@@ -5,7 +5,8 @@ using Core.Utils;
 
 namespace Core.DAO
 {
-  
+
+    // Izvor: OISISI, Vezbe 3, CRUDExample (DAO pattern)
     public class KnjigaAutorDAO
     {
         private readonly List<KnjigaAutor> _knjigeAutori;
@@ -61,13 +62,13 @@ namespace Core.DAO
             return _knjigeAutori;
         }
 
-        
+        // Veze jedne knjige (njeni autori)
         public List<KnjigaAutor> PronadjiAutoreKnjige(int knjigaId)
         {
             return _knjigeAutori.FindAll(veza => veza.KnjigaId == knjigaId);
         }
 
-        
+        // Veze jednog autora (njegove knjige)
         public List<KnjigaAutor> PronadjiKnjigeAutora(int autorId)
         {
             return _knjigeAutori.FindAll(veza => veza.AutorId == autorId);
