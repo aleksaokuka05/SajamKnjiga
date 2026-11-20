@@ -1,13 +1,21 @@
 # SajamKnjiga
 Projektni zadatak iz predmeta **osnovi informacionih sistema i softverskog inzenjerstva**, 2026/27.
 Konzolna aplikacija za upravljanje sajmom knjiga(kontrolna tacka 8.1 - 8.4): dodavanje, izmena, brisanje i pregled svih entiteta, uz cuvanje u CSV datoteke.
+
 # Tim
 **Student 1:** Aleksa Okuka RA205-2024  
 **Student 2:** Luka Marceta RA199-2024
-# Podela posla
-**Aleksa Okuka**  
-Modeli: Posetilac, Kupovina, Izdavac  
-DAO: PosetilacDAO, KupovinaDAO, IzdavacDAO  
+
+## Podela posla
+### Student 1 - Aleksa Okuka
+- **Modeli:** Posetilac, Kupovina, Izdavac
+- **DAO klase:** PosetilacDAO, KupovinaDAO, IzdavacDAO
+- **ConsoleView klase:** PosetilacConsoleView, KupovinaConsoleView, IzdavacConsoleView
+
+### Student 2 - Luka Marceta
+- **Modeli:** Adresa, Autor, Knjiga, KnjigaAutor, StavkaListeZelja
+- **DAO klase:** AdresaDAO, AutorDAO, KnjigaDAO, KnjigaAutorDAO, StavkaListeZeljaDAO
+- **ConsoleView klase:** AdresaConsoleView, AutorConsoleView, KnjigaConsoleView
 
 # Pokretanje
 Otvoriti SajamKnjiga.slnx u Visual Studiu i pokrenuti projekat ConsoleClient.  
